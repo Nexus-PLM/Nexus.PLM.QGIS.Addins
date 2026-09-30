@@ -58,7 +58,51 @@ ENTRIES = [entry for entry in MENU if entry is not None]
 #: The label for each command.
 LABELS = dict(ENTRIES)
 
-#: The commands worth a toolbar button: the ones a user reaches for many times a day. The rest
-#: stay in the menu, so the toolbar does not become a second menu.
-TOOLBAR = ["new-from-template", "open-from-plm", "save-to-plm", "check-out", "check-in",
-           "revise", "properties", "refresh-values"]
+class Group(object):
+    """A toolbar button that drops a menu down: the LibreOffice toolbar's "stacked" buttons.
+
+    ``key`` names the icon (``icons/group-<key>_<size>.png``), ``label`` is the tooltip, and
+    ``commands`` are the menu's entries in order, ``None`` a separator.
+    """
+
+    def __init__(self, key, label, commands):
+        self.key = key
+        self.label = label
+        self.commands = commands
+
+
+#: The toolbar, in order. A string is a plain button for that command, a :class:`Group` a button
+#: with a dropdown, ``None`` a separator. It is the LibreOffice and OpenOffice toolbar exactly
+#: (``nexusplm_controllers.STACKS`` there), so every host presents the same face; Marc asked for
+#: the sign in/out group and the dropdowns after seeing the flat first version.
+TOOLBAR = [
+    Group("account", "Account", ["sign-in", "sign-out"]),
+    None,
+    "new-from-template",
+    "open-from-plm",
+    "search",
+    Group("save", "Save", ["save-to-plm", "save-as-new", "save-as-existing"]),
+    None,
+    Group("tasks", "Tasks", ["check-out", "check-in", None, "revise", None, "change-owner"]),
+    Group("workflow", "Workflow", ["worklist", "new-workflow"]),
+    None,
+    "properties",
+    Group("values", "Values", ["edit-values", "refresh-values"]),
+    None,
+    Group("about", "Nexus PLM", ["settings", "connection-status", None, "help", "about"]),
+]
+
+
+def toolbar_commands():
+    """Every command the toolbar reaches, in order - plain buttons and dropdown entries alike."""
+    commands = []
+    for item in TOOLBAR:
+        if isinstance(item, Group):
+            commands.extend(c for c in item.commands if c is not None)
+        elif item is not None:
+            commands.append(item)
+    return commands
+
+
+#: The group keys, for the icon files that must exist.
+GROUP_KEYS = [item.key for item in TOOLBAR if isinstance(item, Group)]
