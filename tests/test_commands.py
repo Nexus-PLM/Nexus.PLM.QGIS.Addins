@@ -61,6 +61,10 @@ class TestTheMenuAndTheCommandsAgree:
     def test_every_toolbar_button_is_a_menu_entry(self):
         assert [c for c in menu.TOOLBAR if c not in menu.LABELS] == []
 
+    def test_the_whole_command_set_is_on_the_toolbar(self):
+        """Marc: sign in, sign out "etc." on the toolbar - as LibreOffice's toolbar has them."""
+        assert menu.TOOLBAR == [c for c, _ in menu.ENTRIES]
+
     def test_twenty_one_commands_like_every_other_nexus_add_in(self):
         assert len(menu.ENTRIES) == 21
 

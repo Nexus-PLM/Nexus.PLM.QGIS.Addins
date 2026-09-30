@@ -56,6 +56,7 @@ class NexusPlmPlugin:
         for entry in MENU:
             if entry is None:
                 self.menu.addSeparator()
+                self.toolbar.addSeparator()
                 continue
             command, label = entry
             action = QAction(_icon(command), label, window)
