@@ -71,25 +71,34 @@ class TestPluginPy:
 
 
 class TestIcons:
-    """Every command has an icon; without one the toolbar shows a bare word, which is what Marc saw."""
+    """Every command has an icon at every size; without one the toolbar shows a bare word.
+
+    The pictures are the standard Nexus set the LibreOffice and OpenOffice add-ins ship, copied,
+    so every host shows the same icons - Marc's ask. Sizes 16/26/50 as that set is drawn.
+    """
 
     ICONS = os.path.join(PLUGIN, "icons")
+    SIZES = (16, 26, 50)
 
-    def test_every_command_has_an_svg(self):
-        missing = [c for c, _ in menu.ENTRIES if not os.path.isfile(os.path.join(self.ICONS, c + ".svg"))]
+    def test_every_command_has_a_png_at_every_size(self):
+        missing = ["%s_%d.png" % (c, s) for c, _ in menu.ENTRIES for s in self.SIZES
+                   if not os.path.isfile(os.path.join(self.ICONS, "%s_%d.png" % (c, s)))]
         assert missing == []
 
-    def test_the_svgs_are_plain_enough_for_qts_renderer(self):
-        """Qt's SVG module is 'SVG Tiny': no CSS, no filters, no text. Paths and strokes only."""
+    def test_each_file_is_a_png_of_the_size_its_name_says(self):
         for name in os.listdir(self.ICONS):
-            body = open(os.path.join(self.ICONS, name), encoding="utf-8").read()
-            assert body.startswith("<svg"), name
-            for forbidden in ("<style", "<filter", "<text", "<script", "url("):
-                assert forbidden not in body, "%s uses %s" % (name, forbidden)
+            size = int(name.rsplit("_", 1)[1].split(".")[0])
+            with open(os.path.join(self.ICONS, name), "rb") as handle:
+                head = handle.read(24)
+            assert head[:8] == b"\x89PNG\r\n\x1a\n", name
+            width = int.from_bytes(head[16:20], "big")
+            assert width == size, "%s is %d wide" % (name, width)
 
-    def test_plugin_py_looks_icons_up_by_command_name(self):
+    def test_plugin_py_loads_the_same_sizes_the_files_come_in(self):
+        sys.path.insert(0, PLUGIN)
         body = open(os.path.join(PLUGIN, "plugin.py"), encoding="utf-8").read()
-        assert 'command + ".svg"' in body
+        assert "ICON_SIZES = (16, 26, 50)" in body
+        assert '"%s_%d.png" % (command, size)' in body
 
 
 class TestEnablingThePlugin:

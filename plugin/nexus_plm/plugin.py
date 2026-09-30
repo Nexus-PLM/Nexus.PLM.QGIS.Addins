@@ -19,7 +19,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from qgis.core import QgsProject                                       # noqa: E402
-from qgis.PyQt.QtCore import Qt                                        # noqa: E402
+from qgis.PyQt.QtCore import QSize                                     # noqa: E402
 from qgis.PyQt.QtGui import QAction, QIcon                             # noqa: E402
 from qgis.PyQt.QtWidgets import QMenu, QToolBar                        # noqa: E402
 
@@ -100,10 +100,20 @@ class NexusPlmPlugin:
             self.iface.messageBar().pushWarning("Nexus PLM", TRAY_IS_DOWN)
 
 
+#: The sizes the standard Nexus icon set is drawn at - the same PNGs the LibreOffice and
+#: OpenOffice add-ins ship, so every host shows the same pictures. Marc: "can't we use the
+#: standard set of icons we used in the other addins".
+ICON_SIZES = (16, 26, 50)
+
+
 def _icon(command):
-    """The command's toolbar icon, or an empty icon when none is shipped for it."""
-    path = os.path.join(ICONS, command + ".svg")
-    return QIcon(path) if os.path.isfile(path) else QIcon()
+    """The command's icon at every size it is drawn at, or an empty icon when none is shipped."""
+    icon = QIcon()
+    for size in ICON_SIZES:
+        path = os.path.join(ICONS, "%s_%d.png" % (command, size))
+        if os.path.isfile(path):
+            icon.addFile(path, QSize(size, size))
+    return icon
 
 
 def _help_menu_action(menu_bar):
