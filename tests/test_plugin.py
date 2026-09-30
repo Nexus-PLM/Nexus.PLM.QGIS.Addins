@@ -70,6 +70,28 @@ class TestPluginPy:
         assert "name=command" in body
 
 
+class TestIcons:
+    """Every command has an icon; without one the toolbar shows a bare word, which is what Marc saw."""
+
+    ICONS = os.path.join(PLUGIN, "icons")
+
+    def test_every_command_has_an_svg(self):
+        missing = [c for c, _ in menu.ENTRIES if not os.path.isfile(os.path.join(self.ICONS, c + ".svg"))]
+        assert missing == []
+
+    def test_the_svgs_are_plain_enough_for_qts_renderer(self):
+        """Qt's SVG module is 'SVG Tiny': no CSS, no filters, no text. Paths and strokes only."""
+        for name in os.listdir(self.ICONS):
+            body = open(os.path.join(self.ICONS, name), encoding="utf-8").read()
+            assert body.startswith("<svg"), name
+            for forbidden in ("<style", "<filter", "<text", "<script", "url("):
+                assert forbidden not in body, "%s uses %s" % (name, forbidden)
+
+    def test_plugin_py_looks_icons_up_by_command_name(self):
+        body = open(os.path.join(PLUGIN, "plugin.py"), encoding="utf-8").read()
+        assert 'command + ".svg"' in body
+
+
 class TestEnablingThePlugin:
     """A copied plugin is an unticked box in the manager; build.py must also enable it."""
 
