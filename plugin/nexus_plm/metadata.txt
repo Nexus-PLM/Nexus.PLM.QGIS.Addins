@@ -1,0 +1,18 @@
+[general]
+name=Nexus PLM
+qgisMinimumVersion=3.40
+qgisMaximumVersion=4.99
+supportsQt6=True
+description=Product lifecycle management for QGIS projects, from a Nexus PLM menu of its own.
+about=Tracks the project (.qgz/.qgs) in and out of Nexus PLM: create from a template, open and search the vault, save, check out and in, revise, change ownership, worklist and workflow, properties, edit and refresh attribute values. The PLM record lives in the project's own custom properties and is shown through nexus_* project variables. Talks only to the Nexus PLM Addin Service on localhost, hosted by the Nexus PLM tray application.
+version=0.1.0
+author=Nexus PLM
+email=noreply@nexusplm.com
+homepage=https://github.com/Nexus-PLM/Nexus.PLM.QGIS.Addins
+tracker=https://github.com/Nexus-PLM/Nexus.PLM.QGIS.Addins/issues
+repository=https://github.com/Nexus-PLM/Nexus.PLM.QGIS.Addins
+tags=plm,document management,nexus,lifecycle
+category=Plugins
+hasProcessingProvider=no
+experimental=False
+deprecated=False
