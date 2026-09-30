@@ -129,6 +129,7 @@ class NexusPlmPlugin:
         button = QToolButton(self.toolbar)
         button.setObjectName("nexusPlmGroup_" + group.key)
         button.setIcon(_icon("group-" + group.key))
+        button.setText(group.label)          # not drawn (icon-only toolbar) but read by accessibility
         button.setToolTip("Nexus PLM: " + group.label)
         button.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
         menu = QMenu(group.label, button)
