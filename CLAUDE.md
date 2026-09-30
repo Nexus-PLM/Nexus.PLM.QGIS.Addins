@@ -59,6 +59,15 @@ python -m pytest tests/ -q
 - **A command never leaves a traceback in front of the user.** QGIS shows one in a "Python error"
   bar; `commands.run` turns anything unexpected into a toast, only `ServiceUnavailable` escapes and
   `plugin.py` turns that into a message-bar warning.
+- **The toolbar is the LibreOffice toolbar** (`menu.TOOLBAR`: Account ▾ | New, Open, Search,
+  Save ▾ | Tasks ▾, Workflow ▾ | Properties, Values ▾ | Nexus PLM ▾) with the **standard Nexus
+  icon set** (`icons/<command>_16|26|50.png`, `icons/group-<key>_*.png`, copied from the
+  LibreOffice add-in). Marc asked for both. One `QAction` per command serves menu and toolbar.
+- **Commands are greyed out when they do not apply** - `nexusplm.availability.enabled_commands`
+  decides from the service's `/plm/state` answer and who is signed in, nothing else; it is the
+  LibreOffice sidebar's rule widened to the whole set. Refreshed on project load/clear/rename,
+  after each command, and when a menu opens. An unreachable service leaves everything enabled so
+  the user meets the "tray is not running" message rather than a greyed-out toolbar.
 - Host-specific facts are **declared by the add-in** (`HOST_NAME = "QGIS"`,
   `FILE_EXTENSIONS = ".qgz;.qgs"`) and travel with the request; the service keeps no list of hosts.
 
