@@ -109,8 +109,31 @@ def write_values(project, values, variables=None):
             setter(project, variable_name(key), for_display(value))
             shown += 1
 
+    _title_by_part_number(project, values)
     project.setDirty(True)
     return recorded, shown
+
+
+def _title_by_part_number(project, values):
+    """Name the project after its part number, so the window says which item it is.
+
+    QGIS titles a window by the project's title when it has one and by the file name otherwise.
+    A template carries a title ("Nexus PLM project"), so every project made from it opened as
+    "Nexus PLM project - QGIS" - Marc could not tell the windows apart. The part number is the
+    one name every other Nexus host shows in its title bar.
+    """
+    part_number = values.get("PartNumber")
+    if not part_number:
+        return
+    if hasattr(project, "setTitle"):
+        project.setTitle(str(part_number))
+    # QGIS 4 titles the window by the project METADATA's title when there is one - measured: a
+    # staged file whose <title> said QGP-00000003-QGZ still opened as "Nexus PLM project", the
+    # template's metadata title. So the metadata title is set as well.
+    if hasattr(project, "metadata") and hasattr(project, "setMetadata"):
+        metadata = project.metadata()
+        metadata.setTitle(str(part_number))
+        project.setMetadata(metadata)
 
 
 def _variable_setter(project, variables):
@@ -219,6 +242,24 @@ def _write_into_xml(payload, values):
             ET.SubElement(texts, "value").text = text
             existing.append(name)
         shown += 1
+
+    # The window title, as _title_by_part_number does for a live project. QGIS keeps the title in
+    # <title> and mirrors it in the root's projectname attribute.
+    part_number = values.get("PartNumber")
+    if part_number:
+        title = root.find("title")
+        if title is None:
+            title = ET.SubElement(root, "title")
+        title.text = str(part_number)
+        root.set("projectname", str(part_number))
+        # And the metadata title, which is what QGIS 4 actually shows in the title bar.
+        metadata = root.find("projectMetadata")
+        if metadata is None:
+            metadata = ET.SubElement(root, "projectMetadata")
+        md_title = metadata.find("title")
+        if md_title is None:
+            md_title = ET.SubElement(metadata, "title")
+        md_title.text = str(part_number)
 
     return ET.tostring(root, encoding="utf-8", xml_declaration=True), (recorded, shown)
 
