@@ -43,6 +43,28 @@ class TestTheRecord:
         assert not p.dirty
 
 
+class TestTheWindowTitle:
+    """QGIS titles the window by the project title; the part number is what it should say."""
+
+    def test_a_live_project_is_titled_by_its_part_number(self):
+        p = Project()
+        record.write_values(p, {"PartNumber": "QGP-000001-QGZ", "Revision": "A"}, variables=Variables)
+        assert p.title == "QGP-000001-QGZ"
+
+    def test_values_without_a_part_number_leave_the_title_alone(self):
+        p = Project()
+        record.write_values(p, {"Revision": "B"}, variables=Variables)
+        assert not hasattr(p, "title")
+
+    def test_a_staged_file_gets_the_title_and_projectname(self, tmp_path):
+        path = write_qgz(str(tmp_path / "QGP-000001-QGZ.qgz"), minimal_qgs())
+        record.write_into_file(path, {"PartNumber": "QGP-000001-QGZ"})
+        with zipfile.ZipFile(path) as archive:
+            root = ET.fromstring(archive.read("QGP-000001-QGZ.qgs"))
+        assert root.find("title").text == "QGP-000001-QGZ"
+        assert root.get("projectname") == "QGP-000001-QGZ"
+
+
 class TestTheDisplay:
     """Values are shown through project variables a layout label can read."""
 

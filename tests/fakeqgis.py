@@ -64,6 +64,9 @@ class Project:
     def setDirty(self, dirty=True):                                   # noqa: N802
         self.dirty = dirty
 
+    def setTitle(self, title):                                        # noqa: N802
+        self.title = title
+
 
 class Variables:
     """Stands in for ``QgsExpressionContextUtils``: the static ``setProjectVariable``."""
