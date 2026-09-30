@@ -85,6 +85,11 @@ class TestIcons:
                    if not os.path.isfile(os.path.join(self.ICONS, "%s_%d.png" % (c, s)))]
         assert missing == []
 
+    def test_every_dropdown_group_has_its_icon_at_every_size(self):
+        missing = ["group-%s_%d.png" % (k, s) for k in menu.GROUP_KEYS for s in self.SIZES
+                   if not os.path.isfile(os.path.join(self.ICONS, "group-%s_%d.png" % (k, s)))]
+        assert missing == []
+
     def test_each_file_is_a_png_of_the_size_its_name_says(self):
         for name in os.listdir(self.ICONS):
             size = int(name.rsplit("_", 1)[1].split(".")[0])
@@ -95,10 +100,38 @@ class TestIcons:
             assert width == size, "%s is %d wide" % (name, width)
 
     def test_plugin_py_loads_the_same_sizes_the_files_come_in(self):
-        sys.path.insert(0, PLUGIN)
         body = open(os.path.join(PLUGIN, "plugin.py"), encoding="utf-8").read()
         assert "ICON_SIZES = (16, 26, 50)" in body
-        assert '"%s_%d.png" % (command, size)' in body
+        assert '"%s_%d.png" % (name, size)' in body
+
+
+class TestAvailabilityIsWired:
+    """plugin.py can only run inside QGIS; hold its text to the rule and its triggers."""
+
+    def body(self):
+        return open(os.path.join(PLUGIN, "plugin.py"), encoding="utf-8").read()
+
+    def test_the_rule_module_decides_not_plugin_py(self):
+        assert "availability.enabled_commands(state, user=user, path=path)" in self.body()
+
+    def test_it_refreshes_when_the_project_changes_after_a_command_and_when_a_menu_opens(self):
+        body = self.body()
+        for trigger in ("project.readProject", "project.cleared", "project.fileNameChanged",
+                        "aboutToShow.connect(self.refresh_availability)",
+                        "finally:\n            self.refresh_availability()"):
+            assert trigger in body, trigger
+
+    def test_one_action_serves_menu_and_toolbar(self):
+        """Disabling an action must grey it out in both places at once."""
+        body = self.body()
+        assert "self.menu.addAction(self.actions[entry[0]])" in body
+        assert "menu.addAction(self.actions[command])" in body
+        assert "self.toolbar.addAction(self.actions[item])" in body
+
+    def test_an_unreachable_service_leaves_everything_enabled(self):
+        """So the user meets the 'tray is not running' message, not a greyed-out toolbar."""
+        body = self.body()
+        assert "except ServiceUnavailable:\n            allowed = set(self.actions)" in body
 
 
 class TestEnablingThePlugin:

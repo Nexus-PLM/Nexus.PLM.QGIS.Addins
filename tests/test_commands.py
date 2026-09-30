@@ -58,12 +58,27 @@ class TestTheMenuAndTheCommandsAgree:
     def test_every_command_is_on_the_menu(self):
         assert sorted(set(commands.COMMANDS) - {c for c, _ in menu.ENTRIES}) == []
 
-    def test_every_toolbar_button_is_a_menu_entry(self):
-        assert [c for c in menu.TOOLBAR if c not in menu.LABELS] == []
+    def test_every_toolbar_command_is_a_menu_entry(self):
+        assert [c for c in menu.toolbar_commands() if c not in menu.LABELS] == []
 
-    def test_the_whole_command_set_is_on_the_toolbar(self):
+    def test_the_whole_command_set_is_on_the_toolbar_once_each(self):
         """Marc: sign in, sign out "etc." on the toolbar - as LibreOffice's toolbar has them."""
-        assert menu.TOOLBAR == [c for c, _ in menu.ENTRIES]
+        reached = menu.toolbar_commands()
+        assert sorted(reached) == sorted(c for c, _ in menu.ENTRIES)
+        assert len(reached) == len(set(reached))
+
+    def test_the_toolbar_is_the_libreoffice_toolbar(self):
+        """Same groups, same order, so every host presents the same face."""
+        groups = [(g.key, [c for c in g.commands if c]) for g in menu.TOOLBAR if isinstance(g, menu.Group)]
+        assert groups == [
+            ("account", ["sign-in", "sign-out"]),
+            ("save", ["save-to-plm", "save-as-new", "save-as-existing"]),
+            ("tasks", ["check-out", "check-in", "revise", "change-owner"]),
+            ("workflow", ["worklist", "new-workflow"]),
+            ("values", ["edit-values", "refresh-values"]),
+            ("about", ["settings", "connection-status", "help", "about"]),
+        ]
+        assert [i for i in menu.TOOLBAR if isinstance(i, str)] == ["new-from-template", "open-from-plm", "search", "properties"]
 
     def test_twenty_one_commands_like_every_other_nexus_add_in(self):
         assert len(menu.ENTRIES) == 21
