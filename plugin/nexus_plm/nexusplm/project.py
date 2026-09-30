@@ -123,8 +123,17 @@ def _title_by_part_number(project, values):
     one name every other Nexus host shows in its title bar.
     """
     part_number = values.get("PartNumber")
-    if part_number and hasattr(project, "setTitle"):
+    if not part_number:
+        return
+    if hasattr(project, "setTitle"):
         project.setTitle(str(part_number))
+    # QGIS 4 titles the window by the project METADATA's title when there is one - measured: a
+    # staged file whose <title> said QGP-00000003-QGZ still opened as "Nexus PLM project", the
+    # template's metadata title. So the metadata title is set as well.
+    if hasattr(project, "metadata") and hasattr(project, "setMetadata"):
+        metadata = project.metadata()
+        metadata.setTitle(str(part_number))
+        project.setMetadata(metadata)
 
 
 def _variable_setter(project, variables):
@@ -243,6 +252,14 @@ def _write_into_xml(payload, values):
             title = ET.SubElement(root, "title")
         title.text = str(part_number)
         root.set("projectname", str(part_number))
+        # And the metadata title, which is what QGIS 4 actually shows in the title bar.
+        metadata = root.find("projectMetadata")
+        if metadata is None:
+            metadata = ET.SubElement(root, "projectMetadata")
+        md_title = metadata.find("title")
+        if md_title is None:
+            md_title = ET.SubElement(metadata, "title")
+        md_title.text = str(part_number)
 
     return ET.tostring(root, encoding="utf-8", xml_declaration=True), (recorded, shown)
 

@@ -50,6 +50,7 @@ class TestTheWindowTitle:
         p = Project()
         record.write_values(p, {"PartNumber": "QGP-000001-QGZ", "Revision": "A"}, variables=Variables)
         assert p.title == "QGP-000001-QGZ"
+        assert p.metadata().title() == "QGP-000001-QGZ"      # what QGIS 4 shows in the title bar
 
     def test_values_without_a_part_number_leave_the_title_alone(self):
         p = Project()
@@ -63,6 +64,17 @@ class TestTheWindowTitle:
             root = ET.fromstring(archive.read("QGP-000001-QGZ.qgs"))
         assert root.find("title").text == "QGP-000001-QGZ"
         assert root.get("projectname") == "QGP-000001-QGZ"
+        assert root.find("projectMetadata/title").text == "QGP-000001-QGZ"
+
+    def test_an_existing_metadata_title_is_replaced_not_duplicated(self, tmp_path):
+        """Measured: the template's metadata title is what QGIS 4 showed, over <title>."""
+        body = minimal_qgs().replace(
+            b"  <properties>", b"  <projectMetadata><title>Nexus PLM project</title></projectMetadata>\n  <properties>")
+        path = write_qgz(str(tmp_path / "p.qgz"), body)
+        record.write_into_file(path, {"PartNumber": "QGP-000002-QGZ"})
+        with zipfile.ZipFile(path) as archive:
+            root = ET.fromstring(archive.read("p.qgs"))
+        assert [t.text for t in root.findall("projectMetadata/title")] == ["QGP-000002-QGZ"]
 
 
 class TestTheDisplay:
