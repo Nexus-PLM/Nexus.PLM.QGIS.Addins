@@ -79,6 +79,20 @@ python -m pytest tests/ -q
   ".../apps/qgis", True)`; `QgsApplication.qgisSettingsDirPath()` there points at a *python*
   profile, not QGIS's - do not read the profile path from it.
 - Qt 6.11 / PyQt 6.11 / Python 3.12 bundled.
+- **The title bar shows the project METADATA title** (`QgsProject.metadata().title()`), not
+  `<title>`/`projectname`: a staged file whose `<title>` said the part number still opened as the
+  template's "Nexus PLM project". `project.write_values` and `write_into_file` set all three; a
+  live `setMetadata` repaints the title bar at once.
+- **Plugin code is read at QGIS start.** `build.py --install` under a running QGIS changes nothing
+  in it; a QGIS started afterwards has the new code. Two windows can therefore run two versions.
+- **`qgis.bat <file>` starts a separate process** every time (QGIS is not single-instance), so
+  `host.open_document` really does give a second window - Marc: "it launched another session".
+  Offered a reuse-the-empty-window switch; not asked for.
+- **While a tray dialog is open the QGIS window is blocked** (the plugin call holds the UI thread;
+  the title says "Not Responding") and a UI Automation enumeration of the desktop hangs on it.
+  Cosmetic for the user; a driver must find the tray's dialogs through the tray process, not UIA.
+- `qgis-python-crash-info-<pid>` in `%LOCALAPPDATA%\Temp` is an empty placeholder QGIS writes at
+  every start - not an error.
 
 ## Server side
 
@@ -88,5 +102,11 @@ Type `n5QgisProject` (cloned from `n5GimpImage`, 12 connector mappings), numberi
 
 ## Still to do
 
-- E2E sweep of the 21 commands on the installed plugin.
-- Toolbar icons: `plugin/nexus_plm/icons/<command>.svg` are looked up and fall back to no icon.
+- **All 21 commands driven end to end on QGIS 4.2.2 (29 Sep 2026)** - items QGP-00000001..3-QGZ
+  on prod. Every dialog is the service's; the plugin needed no service change ("Has QGIS template"
+  appeared in the New dialog by itself).
+- Toolbar icons: `plugin/nexus_plm/icons/<command>.svg` are looked up and fall back to text-only
+  buttons. None are shipped yet.
+- Optional: run the service call off the UI thread (QEventLoop pump) so QGIS does not read
+  "Not Responding" while a Nexus dialog is open.
+- Optional: reuse the current window for Open from PLM when its project is empty and unsaved.

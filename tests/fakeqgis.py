@@ -64,6 +64,30 @@ class Project:
     def setDirty(self, dirty=True):                                   # noqa: N802
         self.dirty = dirty
 
+    def setTitle(self, title):                                        # noqa: N802
+        self.title = title
+
+    # ── metadata (QgsProjectMetadata: title/abstract, replaced whole via setMetadata) ──
+
+    def metadata(self):
+        return getattr(self, "_metadata", Metadata())
+
+    def setMetadata(self, metadata):                                  # noqa: N802
+        self._metadata = metadata
+
+
+class Metadata:
+    """Stands in for ``QgsProjectMetadata``: the title is all the add-in touches."""
+
+    def __init__(self, title=""):
+        self._title = title
+
+    def title(self):
+        return self._title
+
+    def setTitle(self, title):                                        # noqa: N802
+        self._title = title
+
 
 class Variables:
     """Stands in for ``QgsExpressionContextUtils``: the static ``setProjectVariable``."""
