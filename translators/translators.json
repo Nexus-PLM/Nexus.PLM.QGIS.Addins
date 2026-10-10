@@ -1,0 +1,56 @@
+{
+  // QGIS's example translators: one PyQGIS export script, three entries whose output extension
+  // picks the export (print layout to PDF, map render to PNG, vector layers to GeoPackage).
+  // qgis_process cannot do these: a layout export needs the project's own layout and a render
+  // needs its layers, so the vehicle is QGIS's bundled interpreter running a script headlessly.
+  //
+  // The command is a launcher BESIDE the manifest (space-free path) that calls
+  // "%QGIS_PYTHON_CMD%" - python-qgis.bat, which sets the OSGeo4W environment - because
+  // launching a .bat whose path has spaces through cmd /c with a second quoted argument
+  // loses the outer quotes and breaks on "Program Files". QGIS_PYTHON_CMD must be set on the
+  // Translation server; QGIS is NOT installed there today, so the first job names the
+  // variable in its error. QT_QPA_PLATFORM=offscreen: a Windows service has no desktop and
+  // rendering needs a QGuiApplication. Proven against QGIS 4.2.2 (10 Oct 2026); each export
+  // took about five seconds locally, the timeout allows for a cold OSGeo4W start.
+  "translators": [
+    {
+      "key": "qgis_to_pdf",
+      "label": "QGIS → PDF",
+      "description": "Exports a QGIS project's first print layout to PDF (or the map on one A4 page when it has none), headlessly via PyQGIS.",
+      "inputMimeType": "application/x-qgis-project",
+      "outputMimeType": "application/pdf",
+      "outputFileExtension": ".pdf",
+      "inputFileExtension": ".qgz",
+      "command": "${dir}/qgis_export.cmd",
+      "args": [],
+      "env": { "QGIS_INPUT": "${input}", "QGIS_OUTPUT": "${output}", "QT_QPA_PLATFORM": "offscreen" },
+      "timeoutSeconds": 300
+    },
+    {
+      "key": "qgis_to_png",
+      "label": "QGIS → PNG",
+      "description": "Renders a QGIS project's layers over their full extent to a 1600x1200 PNG, headlessly via PyQGIS.",
+      "inputMimeType": "application/x-qgis-project",
+      "outputMimeType": "image/png",
+      "outputFileExtension": ".png",
+      "inputFileExtension": ".qgz",
+      "command": "${dir}/qgis_export.cmd",
+      "args": [],
+      "env": { "QGIS_INPUT": "${input}", "QGIS_OUTPUT": "${output}", "QT_QPA_PLATFORM": "offscreen" },
+      "timeoutSeconds": 300
+    },
+    {
+      "key": "qgis_to_gpkg",
+      "label": "QGIS → GeoPackage",
+      "description": "Packages every vector layer of a QGIS project into one GeoPackage, one table per layer, headlessly via PyQGIS.",
+      "inputMimeType": "application/x-qgis-project",
+      "outputMimeType": "application/geopackage+sqlite3",
+      "outputFileExtension": ".gpkg",
+      "inputFileExtension": ".qgz",
+      "command": "${dir}/qgis_export.cmd",
+      "args": [],
+      "env": { "QGIS_INPUT": "${input}", "QGIS_OUTPUT": "${output}", "QT_QPA_PLATFORM": "offscreen" },
+      "timeoutSeconds": 300
+    }
+  ]
+}

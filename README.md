@@ -109,6 +109,8 @@ python -m pytest tests/ -q           # 105 tests; no QGIS needed
 | `tools/build_template.py` | Makes `dist/QGIS Project.qgz` under QGIS's own Python. |
 | `tests/` | pytest with `fakeqgis.py`; runs without QGIS. |
 | `installer/` | Inno Setup script; `tests/test_installer.py` holds it against the source. |
+| `translators/` | The Translation-server deliverable: a script manifest, a launcher and one PyQGIS export script. |
+| `Nexus.PLM.QGIS.Translators.Tests/` | Holds the manifest's shape; runs the exports for real when `QGIS_PYTHON_CMD` is set. |
 
 ## Design notes
 
@@ -136,6 +138,24 @@ project that already carries its values.
 
 **While a Nexus dialog is open the QGIS window reads "Not Responding"** — the plugin call holds the
 UI thread. Cosmetic; noted as a follow-up.
+
+## Server-side translators
+
+`translators/` is this repo's Translation-server deliverable: a script manifest, a launcher and
+one PyQGIS export script. `qgis_to_pdf` exports the project's first print layout (or the map on
+one A4 page when it has none), `qgis_to_png` renders the layers over their full extent, and
+`qgis_to_gpkg` packages every vector layer into one GeoPackage, one table per layer. All three
+run headlessly under QGIS's bundled interpreter: set `QGIS_PYTHON_CMD` on the server to
+`bin\python-qgis.bat`, which carries the OSGeo4W environment. The launcher beside the manifest
+is what the server starts, because that interpreter's default path has spaces and launching it
+through `cmd /c` with a second quoted argument loses the outer quotes. Paths travel through
+`QGIS_INPUT`/`QGIS_OUTPUT`, and `QT_QPA_PLATFORM=offscreen` lets a service without a desktop
+render. Deployed to `Nexus\Translators\qgis\`; keys reserved in
+`Nexus.PLM.Services/docs/translator-ownership.md`. A `v*` tag attaches the zip to the release.
+
+```bash
+dotnet test Nexus.PLM.QGIS.Translators.Tests          # manifest shape; exports too when QGIS_PYTHON_CMD is set
+```
 
 ## Contributing
 
